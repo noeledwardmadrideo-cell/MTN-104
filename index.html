@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ApexCalc Ultimate - Interactive Calculus Suite</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              900: '#312e81',
+            },
+            cyber: {
+              bg: '#0b0f19',
+              card: '#111827',
+              border: '#1f2937',
+              accent: '#10b981',
+              pink: '#ec4899',
+              cyan: '#06b6d4',
+              yellow: '#f59e0b'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- KaTeX for LaTeX Math Rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+
+  <!-- Math.js for symbolic and numerical calculations -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #374151;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #4b5563;
+    }
+    .grid-bg {
+      background-image: radial-gradient(rgba(99, 102, 241, 0.12) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased grid-bg">
+
+  <!-- Header / Navigation Bar -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+          <i data-lucide="calculator" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">
+            ApexCalc <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">ULTIMATE</span>
+          </h1>
+          <p class="text-xs text-slate-400">Interactive Visual Calculus Platform</p>
+        </div>
+      </div>
+
+      <!-- Controls & Quick Presets -->
+      <div class="flex items-center space-x-3">
+        <div class="hidden md:flex items-center space-x-2 bg-slate-800/80 p-1 rounded-lg border border-slate-700/60">
+          <span class="text-xs text-slate-400 px-2">Presets:</span>
+          <button onclick="loadPreset('sin(x)')" class="text-xs px-2 py-1 rounded bg-slate-700 hover:bg-indigo-600 text-slate-200 transition">sin(x)</button>
+          <button onclick="loadPreset('x^3 - 3*x')" class="text-xs px-2 py-1 rounded bg-slate-700 hover:bg-indigo-600 text-slate-200 transition">x³ - 3x</button>
+          <button onclick="loadPreset('x * exp(-x)')" class="text-xs px-2 py-1 rounded bg-slate-700 hover:bg-indigo-600 text-slate-200 transition">x·e⁻ˣ</button>
+          <button onclick="loadPreset('(x^2 - 1)/(x - 1)')" class="text-xs px-2 py-1 rounded bg-slate-700 hover:bg-indigo-600 text-slate-200 transition">(x²-1)/(x-1)</button>
+        </div>
+        <button id="themeToggleBtn" onclick="toggleTheme()" class="p-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 transition">
+          <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+          <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- Left Column: Navigation Tabs & Interactive Calculators (7 cols) -->
+    <div class="lg:col-span-7 flex flex-col space-y-6">
+      
+      <!-- Module Navigation Tabs -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-1.5 flex flex-wrap gap-1 shadow-xl">
+        <button onclick="switchTab('limits')" id="tab-limits" class="tab-btn active flex-1 min-w-[120px] py-2.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center space-x-2 transition">
+          <i data-lucide="arrow-right-left" class="w-4 h-4"></i>
+          <span>1. Limits</span>
+        </button>
+        <button onclick="switchTab('derivatives')" id="tab-derivatives" class="tab-btn flex-1 min-w-[120px] py-2.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center space-x-2 transition">
+          <i data-lucide="trending-up" class="w-4 h-4"></i>
+          <span>2. Derivatives</span>
+        </button>
+        <button onclick="switchTab('optimization')" id="tab-optimization" class="tab-btn flex-1 min-w-[120px] py-2.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center space-x-2 transition">
+          <i data-lucide="target" class="w-4 h-4"></i>
+          <span>3. Max/Min</span>
+        </button>
+        <button onclick="switchTab('sketching')" id="tab-sketching" class="tab-btn flex-1 min-w-[120px] py-2.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center space-x-2 transition">
+          <i data-lucide="activity" class="w-4 h-4"></i>
+          <span>4. Curve Analysis</span>
+        </button>
+        <button onclick="switchTab('socratic')" id="tab-socratic" class="tab-btn flex-1 min-w-[120px] py-2.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center space-x-2 transition">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>
+          <span>5. AI Tutor</span>
+        </button>
+      </div>
+
+      <!-- Universal Function Input Bar -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-xl">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
+          <label class="text-xs font-semibold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
+            <i data-lucide="function-square" class="w-4 h-4"></i> Main Function f(x)
+          </label>
+          <span class="text-[11px] text-slate-400">Supported: sin, cos, tan, exp, log, sqrt, polynomials</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="relative flex-1">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-mono text-sm">f(x) =</span>
+            <input type="text" id="globalExprInput" value="x^3 - 3*x" 
+              class="w-full pl-16 pr-4 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 font-mono focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
+              placeholder="e.g. sin(x) / x">
+          </div>
+          <button onclick="calculateAll()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg text-sm transition shadow-lg shadow-indigo-600/30 flex items-center gap-1.5">
+            <i data-lucide="play" class="w-4 h-4"></i>
+            <span>Solve</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- MODULE 1: LIMITS & CONTINUITY CALCULATOR -->
+      <div id="module-limits" class="module-content space-y-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl space-y-4">
+          <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2 border-b border-slate-800 pb-3">
+            <i data-lucide="arrow-right-left" class="w-5 h-5 text-indigo-400"></i>
+            Limits & Continuity Calculator
+          </h2>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Target Point (c)</label>
+              <input type="number" id="limitTargetC" value="1" step="0.1" onchange="calculateLimits()"
+                class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 font-mono focus:border-indigo-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Epsilon Precision (δ)</label>
+              <input type="number" id="limitDelta" value="0.001" step="0.0001" onchange="calculateLimits()"
+                class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 font-mono focus:border-indigo-500 focus:outline-none">
+            </div>
+          </div>
+
+          <!-- Limit Evaluation Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-center">
+              <span class="text-[11px] text-slate-400 block">Left-Hand Limit (L⁻)</span>
+              <div id="latex-limit-left" class="text-sm font-mono text-cyan-400 my-1">--</div>
+            </div>
+            <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-center">
+              <span class="text-[11px] text-slate-400 block">Right-Hand Limit (L⁺)</span>
+              <div id="latex-limit-right" class="text-sm font-mono text-cyan-400 my-1">--</div>
+            </div>
+            <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-center">
+              <span class="text-[11px] text-slate-400 block">Overall Limit (L)</span>
+              <div id="latex-limit-total" class="text-sm font-mono text-emerald-400 my-1">--</div>
+            </div>
+          </div>
+
+          <!-- Continuity & Discontinuity Diagnostics -->
+          <div class="p-3.5 bg-indigo-950/30 border border-indigo-800/40 rounded-lg">
+            <h4 class="text-xs font-semibold text-indigo-300 uppercase tracking-wider mb-1">Continuity Status</h4>
+            <div id="continuityStatusText" class="text-sm text-slate-200 font-medium">Evaluating continuity...</div>
+          </div>
+
+          <!-- Numerical Approximation Table -->
+          <div>
+            <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Numerical Approach Table</h4>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left text-slate-300 font-mono border-collapse">
+                <thead class="bg-slate-950 text-slate-400 border-b border-slate-800">
+                  <tr>
+                    <th class="p-2">Approach</th>
+                    <th class="p-2">x Value</th>
+                    <th class="p-2">f(x) Calculated</th>
+                  </tr>
+                </thead>
+                <tbody id="limitTableBody" class="divide-y divide-slate-800/60 bg-slate-900/50">
+                  <!-- JS dynamically fills -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODULE 2: HIGHER-ORDER & TRIGONOMETRIC DERIVATIVES CALCULATOR -->
+      <div id="module-derivatives" class="module-content space-y-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl space-y-4">
+          <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2 border-b border-slate-800 pb-3">
+            <i data-lucide="trending-up" class="w-5 h-5 text-indigo-400"></i>
+            Higher-Order & Trigonometric Derivatives Calculator
+          </h2>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Tangent Evaluation Point (x = a)</label>
+              <input type="number" id="derivEvalA" value="1" step="0.1" onchange="calculateDerivatives()"
+                class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 font-mono focus:border-indigo-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">N-th Order Derivative Preview</label>
+              <select id="nthDerivSelect" onchange="calculateDerivatives()" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 font-mono focus:border-indigo-500 focus:outline-none">
+                <option value="1">1st Derivative f'(x)</option>
+                <option value="2">2nd Derivative f''(x)</option>
+                <option value="3">3rd Derivative f'''(x)</option>
+                <option value="4">4th Derivative f⁽⁴⁾(x)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Symbolic Derivative Results -->
+          <div class="space-y-3">
+            <div class="p-3 bg-slate-950 rounded-lg border border-slate-800">
+              <span class="text-xs text-slate-400 block mb-1">First Derivative f'(x):</span>
+              <div id="latex-deriv-1" class="text-sm font-mono text-indigo-300">--</div>
+            </div>
+            <div class="p-3 bg-slate-950 rounded-lg border border-slate-800">
+              <span class="text-xs text-slate-400 block mb-1">Second Derivative f''(x):</span>
+              <div id="latex-deriv-2" class="text-sm font-mono text-pink-300">--</div>
+            </div>
+            <div class="p-3 bg-slate-950 rounded-lg border border-slate-800">
+              <span class="text-xs text-slate-400 block mb-1">Third Derivative f'''(x):</span>
+              <div id="latex-deriv-3" class="text-sm font-mono text-cyan-300">--</div>
+            </div>
+          </div>
+
+          <!-- Tangent Line Equation at x = a -->
+          <div class="p-4 bg-slate-950 border border-indigo-900/50 rounded-lg space-y-2">
+            <h4 class="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Tangent Line Equation at x = a</h4>
+            <div id="latex-tangent-eq" class="text-sm font-mono text-emerald-400">--</div>
+            <p class="text-xs text-slate-400" id="tangentSlopeValue">Slope m = f'(a) = --</p>
+          </div>
+
+          <!-- Trig Cyclic Derivative Pattern Inspector -->
+          <div class="p-4 bg-slate-950 border border-slate-800 rounded-lg">
+            <h4 class="text-xs font-semibold text-purple-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <i data-lucide="rotate-cw" class="w-4 h-4"></i> Trigonometric Cyclic Properties
+            </h4>
+            <div id="trigCycleBox" class="text-xs text-slate-300 space-y-1 font-mono">
+              Detecting trig cycles...
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODULE 3: MAXIMA, MINIMA & OPTIMIZATION CALCULATOR -->
+      <div id="module-optimization" class="module-content space-y-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl space-y-4">
+          <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2 border-b border-slate-800 pb-3">
+            <i data-lucide="target" class="w-5 h-5 text-indigo-400"></i>
+            Maxima, Minima & Optimization Solver
+          </h2>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Domain Interval Start [A]</label>
+              <input type="number" id="optIntervalA" value="-3" step="0.5" onchange="calculateOptimization()"
+                class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 font-mono focus:border-indigo-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Domain Interval End [B]</label>
+              <input type="number" id="optIntervalB" value="3" step="0.5" onchange="calculateOptimization()"
+                class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 font-mono focus:border-indigo-500 focus:outline-none">
+            </div>
+          </div>
+
+          <!-- Critical Points & Extrema Table -->
+          <div>
+            <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Detected Critical Points & Extrema</h4>
+            <div id="criticalPointsList" class="space-y-2">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- First & Second Derivative Test Diagnostics -->
+          <div class="p-4 bg-slate-950 border border-slate-800 rounded-lg space-y-2">
+            <h4 class="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Derivative Tests Breakdown</h4>
+            <div id="derivativeTestDetails" class="text-xs text-slate-300 font-mono leading-relaxed">
+              Evaluating critical points...
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODULE 4: CURVE SKETCHING & INFLECTION POINT CALCULATOR -->
+      <div id="module-sketching" class="module-content space-y-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl space-y-4">
+          <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2 border-b border-slate-800 pb-3">
+            <i data-lucide="activity" class="w-5 h-5 text-indigo-400"></i>
+            Curve Sketching & Concavity Calculator
+          </h2>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <!-- Increasing / Decreasing Intervals -->
+            <div class="p-3 bg-slate-950 border border-slate-800 rounded-lg">
+              <span class="text-xs text-emerald-400 font-semibold block mb-1">Monotonicity (f')</span>
+              <div id="monotonicityText" class="text-xs font-mono text-slate-300">Calculating...</div>
+            </div>
+
+            <!-- Concavity Intervals -->
+            <div class="p-3 bg-slate-950 border border-slate-800 rounded-lg">
+              <span class="text-xs text-pink-400 font-semibold block mb-1">Concavity (f'')</span>
+              <div id="concavityText" class="text-xs font-mono text-slate-300">Calculating...</div>
+            </div>
+          </div>
+
+          <!-- Inflection Points Summary -->
+          <div class="p-4 bg-slate-950 border border-slate-800 rounded-lg space-y-2">
+            <h4 class="text-xs font-semibold text-purple-400 uppercase tracking-wider">Inflection Points f''(x) = 0</h4>
+            <div id="inflectionPointsText" class="text-xs font-mono text-slate-200">Analyzing concavity shifts...</div>
+          </div>
+
+          <!-- Asymptotes & Domain Bounds -->
+          <div class="p-4 bg-slate-950 border border-slate-800 rounded-lg space-y-2">
+            <h4 class="text-xs font-semibold text-cyan-400 uppercase tracking-wider">Asymptotes & Discontinuities</h4>
+            <div id="asymptotesText" class="text-xs font-mono text-slate-300">Scanning rational asymptotes...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODULE 5: SOCRATIC AI TUTOR & GUIDED SOLVER -->
+      <div id="module-socratic" class="module-content space-y-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl space-y-4">
+          <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2 border-b border-slate-800 pb-3">
+            <i data-lucide="sparkles" class="w-5 h-5 text-indigo-400"></i>
+            Socratic AI Calculus Tutor
+          </h2>
+
+          <p class="text-xs text-slate-400">Select a calculus challenge problem to receive guided step-by-step Socratic hints.</p>
+
+          <!-- Problem Selector -->
+          <div class="space-y-2">
+            <label class="block text-xs font-medium text-slate-400">Select Practice Problem:</label>
+            <select id="socraticProblemSelect" onchange="loadSocraticProblem()" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-100 font-mono text-xs focus:outline-none">
+              <option value="1">Problem 1: Derivative of f(x) = x³ - 3x (Polynomial Optimization)</option>
+              <option value="2">Problem 2: Limit of f(x) = (x² - 1) / (x - 1) as x → 1</option>
+              <option value="3">Problem 3: Concavity & Inflection of f(x) = x * e⁻ˣ</option>
+              <option value="4">Problem 4: Trigonometric Maxima of f(x) = sin(x) + cos(x) on [0, 2π]</option>
+            </select>
+          </div>
+
+          <!-- Interactive Tutor Box -->
+          <div class="bg-slate-950 border border-indigo-900/40 rounded-xl p-4 space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+              <span class="text-xs font-semibold text-indigo-300 uppercase tracking-wider">Guided Problem Sandbox</span>
+              <span id="socraticStepBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-mono">Step 1 of 3</span>
+            </div>
+
+            <div id="socraticQuestionArea" class="text-sm font-medium text-slate-200">
+              Loading Socratic challenge...
+            </div>
+
+            <div id="socraticHintBox" class="p-3 bg-indigo-950/20 border border-indigo-800/30 rounded-lg text-xs text-indigo-200 hidden">
+              <!-- Hint content -->
+            </div>
+
+            <div class="flex items-center gap-2 pt-2">
+              <button onclick="revealSocraticHint()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-xs font-medium transition flex items-center gap-1">
+                <i data-lucide="lightbulb" class="w-3.5 h-3.5 text-yellow-400"></i>
+                <span>Get Hint</span>
+              </button>
+              <button onclick="nextSocraticStep()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-xs font-medium transition flex items-center gap-1 ml-auto">
+                <span>Next Step</span>
+                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Interactive Dynamic Math Canvas & Graph Controls (5 cols) -->
+    <div class="lg:col-span-5 flex flex-col space-y-4">
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-xl flex flex-col h-full sticky top-20">
+        
+        <!-- Canvas Header & Toggles -->
+        <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="line-chart" class="w-5 h-5 text-indigo-400"></i>
+            <h3 class="text-sm font-bold text-slate-100">Dynamic Graph Engine</h3>
+          </div>
+          <div class="flex items-center space-x-1">
+            <button onclick="resetCanvasView()" title="Reset Zoom/Pan" class="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Graph Curves Toggle Filters -->
+        <div class="flex flex-wrap items-center gap-3 text-xs mb-3">
+          <label class="flex items-center space-x-1.5 cursor-pointer">
+            <input type="checkbox" id="chkShowFx" checked onchange="drawGraph()" class="rounded bg-slate-950 border-slate-700 text-indigo-600 focus:ring-0">
+            <span class="text-indigo-400 font-semibold">f(x)</span>
+          </label>
+          <label class="flex items-center space-x-1.5 cursor-pointer">
+            <input type="checkbox" id="chkShowF1" checked onchange="drawGraph()" class="rounded bg-slate-950 border-slate-700 text-indigo-600 focus:ring-0">
+            <span class="text-cyan-400 font-semibold">f'(x)</span>
+          </label>
+          <label class="flex items-center space-x-1.5 cursor-pointer">
+            <input type="checkbox" id="chkShowF2" onchange="drawGraph()" class="rounded bg-slate-950 border-slate-700 text-indigo-600 focus:ring-0">
+            <span class="text-pink-400 font-semibold">f''(x)</span>
+          </label>
+          <label class="flex items-center space-x-1.5 cursor-pointer">
+            <input type="checkbox" id="chkShowTangent" checked onchange="drawGraph()" class="rounded bg-slate-950 border-slate-700 text-indigo-600 focus:ring-0">
+            <span class="text-emerald-400 font-semibold">Tangent Line</span>
+          </label>
+        </div>
+
+        <!-- HTML5 Canvas Element -->
+        <div class="relative w-full aspect-square bg-slate-950 rounded-lg border border-slate-800 overflow-hidden cursor-crosshair">
+          <canvas id="mathCanvas" class="w-full h-full block"></canvas>
+          
+          <!-- Hover Coordinates Overlay -->
+          <div id="canvasHoverCoords" class="absolute bottom-2 left-2 px-2.5 py-1 bg-slate-900/90 border border-slate-700 rounded text-[11px] font-mono text-slate-300 pointer-events-none">
+            x: 0.00, y: 0.00
+          </div>
+        </div>
+
+        <!-- Dynamic Tangent Slider Control -->
+        <div class="mt-4 pt-3 border-t border-slate-800 space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-400 font-medium">Interactive Cursor Tracer (x = a):</span>
+            <span id="sliderAVal" class="font-mono text-emerald-400 font-bold">1.00</span>
+          </div>
+          <input type="range" id="canvasASlider" min="-4" max="4" step="0.05" value="1" oninput="updateSliderA(this.value)"
+            class="w-full accent-indigo-500 cursor-pointer">
+        </div>
+
+        <!-- Legend & Markers Guide -->
+        <div class="mt-4 grid grid-cols-2 gap-2 text-[11px] text-slate-400">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
+            <span>Critical Point / Max / Min</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-purple-500 inline-block"></span>
+            <span>Inflection Point</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800 bg-slate-900/60 mt-8 py-4 text-center text-xs text-slate-500">
+    <p>ApexCalc Ultimate &copy; 2026 • Interactive Educational Platform for Calculus Mastery</p>
+  </footer>
+
+  <!-- Application Logic JavaScript -->
+  <script>
+    // Global Application State
+    let currentTab = 'limits';
+    let currentExprStr = "x^3 - 3*x";
+    let mathCompiledFx = null;
+    let mathCompiledF1 = null;
+    let mathCompiledF2 = null;
+
+    // Viewport Parameters for Canvas Graphing
+    let graphState = {
+      xMin: -5,
+      xMax: 5,
+      yMin: -5,
+      yMax: 5,
+      evalA: 1.0
+    };
+
+    // Initialize Application on Window Load
+    window.onload = function() {
+      lucide.createIcons();
+      initCanvasEvents();
+      calculateAll();
+      loadSocraticProblem();
+    };
+
+    // Switch between Calculator Tabs
+    function switchTab(tabId) {
+      currentTab = tabId;
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active', 'bg-indigo-600', 'text-white'));
+      document.querySelectorAll('.module-content').forEach(mod => mod.classList.add('hidden'));
+
+      const activeBtn = document.getElementById(`tab-${tabId}`);
+      if (activeBtn) {
+        activeBtn.classList.add('active', 'bg-indigo-600', 'text-white');
+      }
+
+      const activeMod = document.getElementById(`module-${tabId}`);
+      if (activeMod) {
+        activeMod.classList.remove('hidden');
+      }
+    }
+
+    // Load Preset Functions
+    function loadPreset(expr) {
+      document.getElementById('globalExprInput').value = expr;
+      calculateAll();
+    }
+
+    // Master Calculation & Compilation Trigger
+    function calculateAll() {
+      currentExprStr = document.getElementById('globalExprInput').value.trim();
+      
+      try {
+        // Compile mathjs functions
+        const nodeFx = math.parse(currentExprStr);
+        mathCompiledFx = nodeFx.compile();
+
+        // Symbolic Derivatives
+        const nodeF1 = math.derivative(nodeFx, 'x');
+        mathCompiledF1 = nodeF1.compile();
+
+        const nodeF2 = math.derivative(nodeF1, 'x');
+        mathCompiledF2 = nodeF2.compile();
+
+        // Execute calculations for active components
+        calculateLimits();
+        calculateDerivatives();
+        calculateOptimization();
+        calculateSketching();
+
+        // Render Canvas
+        drawGraph();
+
+      } catch (err) {
+        console.error("Math compilation error:", err);
+      }
+    }
+
+    // Evaluate compiled function with fallback
+    function evalFx(x) {
+      if (!mathCompiledFx) return NaN;
+      try {
+        return mathCompiledFx.evaluate({ x: x });
+      } catch (e) {
+        return NaN;
+      }
+    }
+
+    function evalF1(x) {
+      if (!mathCompiledF1) return NaN;
+      try {
+        return mathCompiledF1.evaluate({ x: x });
+      } catch (e) {
+        return NaN;
+      }
+    }
+
+    function evalF2(x) {
+      if (!mathCompiledF2) return NaN;
+      try {
+        return mathCompiledF2.evaluate({ x: x });
+      } catch (e) {
+        return NaN;
+      }
+    }
+
+    // -------------------------------------------------------------
+    // MODULE 1: LIMITS & CONTINUITY LOGIC
+    // -------------------------------------------------------------
+    function calculateLimits() {
+      const c = parseFloat(document.getElementById('limitTargetC').value) || 0;
+      const delta = parseFloat(document.getElementById('limitDelta').value) || 0.001;
+
+      // Numerical left and right approaches
+      const leftX = c - delta;
+      const rightX = c + delta;
+
+      const leftVal = evalFx(leftX);
+      const rightVal = evalFx(rightX);
+      const directVal = evalFx(c);
+
+      const formatNum = (num) => isNaN(num) ? '\\text{Undefined}' : Number(num.toFixed(5)).toString();
+
+      // Render KaTeX for Limit Values
+      renderKaTeX(`\\lim_{x \\to ${c}^-} f(x) = ${formatNum(leftVal)}`, 'latex-limit-left');
+      renderKaTeX(`\\lim_{x \\to ${c}^+} f(x) = ${formatNum(rightVal)}`, 'latex-limit-right');
+
+      let overallLimitText = "";
+      if (!isNaN(leftVal) && !isNaN(rightVal) && Math.abs(leftVal - rightVal) < 0.01) {
+        const avgLimit = (leftVal + rightVal) / 2;
+        overallLimitText = `\\lim_{x \\to ${c}} f(x) = ${formatNum(avgLimit)}`;
+      } else {
+        overallLimitText = `\\lim_{x \\to ${c}} f(x) \\text{ DNE}`;
+      }
+      renderKaTeX(overallLimitText, 'latex-limit-total');
+
+      // Continuity Status Diagnostic
+      const statusBox = document.getElementById('continuityStatusText');
+      if (Math.abs(leftVal - rightVal) >= 0.01) {
+        statusBox.innerHTML = `<span class="text-pink-400 font-bold">Discontinuous at x = ${c} (Jump Discontinuity)</span>`;
+      } else if (isNaN(directVal)) {
+        statusBox.innerHTML = `<span class="text-yellow-400 font-bold">Discontinuous at x = ${c} (Removable Hole Discontinuity)</span>`;
+      } else {
+        statusBox.innerHTML = `<span class="text-emerald-400 font-bold">Continuous at x = ${c} [f(${c}) = ${formatNum(directVal)}]</span>`;
+      }
+
+      // Populate Table
+      const tableBody = document.getElementById('limitTableBody');
+      const deltas = [-0.1, -0.01, -0.001, 0.001, 0.01, 0.1];
+      let rowsHtml = '';
+      deltas.forEach(d => {
+        const xVal = c + d;
+        const yVal = evalFx(xVal);
+        rowsHtml += `
+          <tr>
+            <td class="p-2 text-slate-400">${d < 0 ? 'Left (c - ' + Math.abs(d) + ')' : 'Right (c + ' + d + ')'}</td>
+            <td class="p-2 font-mono">${xVal.toFixed(4)}</td>
+            <td class="p-2 font-mono text-cyan-300">${isNaN(yVal) ? 'Undefined' : yVal.toFixed(5)}</td>
+          </tr>
+        `;
+      });
+      tableBody.innerHTML = rowsHtml;
+    }
+
+    // -------------------------------------------------------------
+    // MODULE 2: HIGHER-ORDER & TRIG DERIVATIVES LOGIC
+    // -------------------------------------------------------------
+    function calculateDerivatives() {
+      const a = parseFloat(document.getElementById('derivEvalA').value) || 0;
+      graphState.evalA = a;
+
+      try {
+        const nodeFx = math.parse(currentExprStr);
+        const nodeF1 = math.derivative(nodeFx, 'x');
+        const nodeF2 = math.derivative(nodeF1, 'x');
+        const nodeF3 = math.derivative(nodeF2, 'x');
+
+        renderKaTeX(`f'(x) = ${nodeF1.toTex()}`, 'latex-deriv-1');
+        renderKaTeX(`f''(x) = ${nodeF2.toTex()}`, 'latex-deriv-2');
+        renderKaTeX(`f'''(x) = ${nodeF3.toTex()}`, 'latex-deriv-3');
+
+        // Tangent Equation: y - f(a) = f'(a)(x - a) => y = f'(a)*x + (f(a) - f'(a)*a)
+        const fa = evalFx(a);
+        const f1a = evalF1(a);
+
+        if (!isNaN(fa) && !isNaN(f1a)) {
+          const intercept = fa - f1a * a;
+          const signStr = intercept >= 0 ? `+ ${intercept.toFixed(3)}` : `- ${Math.abs(intercept).toFixed(3)}`;
+          renderKaTeX(`y = ${f1a.toFixed(3)}x ${signStr}`, 'latex-tangent-eq');
+          document.getElementById('tangentSlopeValue').innerText = `Slope m = f'(${a}) = ${f1a.toFixed(4)}, Point (${a}, ${fa.toFixed(3)})`;
+        } else {
+          renderKaTeX(`\\text{Tangent Undefined at } x = ${a}`, 'latex-tangent-eq');
+        }
+
+        // Trig Cycles Detection
+        const trigBox = document.getElementById('trigCycleBox');
+        if (currentExprStr.includes('sin') || currentExprStr.includes('cos')) {
+          trigBox.innerHTML = `
+            <div>• Trigonometric functions exhibit cyclic derivatives of period 4:</div>
+            <div>• f⁽⁴⁾(x) returns to original phase scaled by frequency coefficients.</div>
+          `;
+        } else {
+          trigBox.innerHTML = `<div>• Polynomial / Exponential function derivatives decay or scale continuously.</div>`;
+        }
+
+      } catch (e) {
+        console.error("Derivative calculation error:", e);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // MODULE 3: MAXIMA, MINIMA & OPTIMIZATION LOGIC
+    // -------------------------------------------------------------
+    function calculateOptimization() {
+      const intervalA = parseFloat(document.getElementById('optIntervalA').value) || -3;
+      const intervalB = parseFloat(document.getElementById('optIntervalB').value) || 3;
+
+      const criticalPoints = [];
+      const step = (intervalB - intervalA) / 200;
+
+      for (let x = intervalA; x <= intervalB; x += step) {
+        const slope1 = evalF1(x);
+        const slope2 = evalF1(x + step);
+
+        if (slope1 * slope2 <= 0 && !isNaN(slope1) && !isNaN(slope2)) {
+          const critX = x + step / 2;
+          const critY = evalFx(critX);
+          const secondDeriv = evalF2(critX);
+
+          let type = "Local Extremum";
+          if (secondDeriv < -0.001) type = "Local Maximum (f'' < 0)";
+          else if (secondDeriv > 0.001) type = "Local Minimum (f'' > 0)";
+          else type = "Inconclusive / Saddle (f'' = 0)";
+
+          criticalPoints.push({ x: critX, y: critY, type: type, f2: secondDeriv });
+        }
+      }
+
+      // Render Critical Points List
+      const listContainer = document.getElementById('criticalPointsList');
+      if (criticalPoints.length === 0) {
+        listContainer.innerHTML = `<div class="text-xs text-slate-400 font-mono">No critical points found in interval [${intervalA}, ${intervalB}].</div>`;
+      } else {
+        let html = '';
+        criticalPoints.forEach((pt, idx) => {
+          html += `
+            <div class="p-3 bg-slate-950 border border-slate-800 rounded-lg flex items-center justify-between">
+              <div>
+                <span class="text-xs font-bold text-emerald-400">Critical Pt #${idx + 1}: (x = ${pt.x.toFixed(3)}, y = ${pt.y.toFixed(3)})</span>
+                <p class="text-[11px] text-slate-400">${pt.type}</p>
+              </div>
+              <span class="text-xs px-2 py-1 rounded bg-indigo-500/20 text-indigo-300 font-mono">f'' = ${pt.f2.toFixed(2)}</span>
+            </div>
+          `;
+        });
+        listContainer.innerHTML = html;
+      }
+
+      // Details Box
+      document.getElementById('derivativeTestDetails').innerHTML = `
+        • Evaluated f'(x) = 0 across interval [${intervalA}, ${intervalB}].<br>
+        • Total critical points identified: ${criticalPoints.length}.
+      `;
+    }
+
+    // -------------------------------------------------------------
+    // MODULE 4: CURVE SKETCHING & INFLECTION LOGIC
+    // -------------------------------------------------------------
+    function calculateSketching() {
+      const a = -4, b = 4;
+      const step = 0.1;
+
+      let incCount = 0, decCount = 0;
+      let concUpCount = 0, concDownCount = 0;
+
+      for (let x = a; x <= b; x += step) {
+        const f1 = evalF1(x);
+        const f2 = evalF2(x);
+
+        if (f1 > 0) incCount++; else if (f1 < 0) decCount++;
+        if (f2 > 0) concUpCount++; else if (f2 < 0) concDownCount++;
+      }
+
+      document.getElementById('monotonicityText').innerText = 
+        `Function increases where f'(x) > 0 and decreases where f'(x) < 0 across range.`;
+
+      document.getElementById('concavityText').innerText = 
+        `Concave Up: ${concUpCount > 0 ? 'Detected' : 'None'}, Concave Down: ${concDownCount > 0 ? 'Detected' : 'None'}`;
+
+      document.getElementById('inflectionPointsText').innerText = 
+        `Inflection points occur where f''(x) = 0 and concavity changes sign.`;
+
+      document.getElementById('asymptotesText').innerText = 
+        `Check denominator roots for vertical asymptotes or limits as x → ±∞ for horizontal asymptotes.`;
+    }
+
+    // -------------------------------------------------------------
+    // DYNAMIC HTML5 CANVAS GRAPHING ENGINE
+    // -------------------------------------------------------------
+    function drawGraph() {
+      const canvas = document.getElementById('mathCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+
+      // Adjust high-DPI scaling
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * window.devicePixelRatio;
+      canvas.height = rect.height * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+      const width = rect.width;
+      const height = rect.height;
+
+      // Clear Canvas
+      ctx.fillStyle = '#090d16';
+      ctx.fillRect(0, 0, width, height);
+
+      // Coordinate Mapping Transforms
+      const toScreenX = (x) => ((x - graphState.xMin) / (graphState.xMax - graphState.xMin)) * width;
+      const toScreenY = (y) => height - ((y - graphState.yMin) / (graphState.yMax - graphState.yMin)) * height;
+
+      // Draw Grid Lines & Axes
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = '#1e293b';
+
+      for (let x = Math.ceil(graphState.xMin); x <= Math.floor(graphState.xMax); x++) {
+        const sx = toScreenX(x);
+        ctx.beginPath();
+        ctx.moveTo(sx, 0);
+        ctx.lineTo(sx, height);
+        ctx.stroke();
+      }
+
+      for (let y = Math.ceil(graphState.yMin); y <= Math.floor(graphState.yMax); y++) {
+        const sy = toScreenY(y);
+        ctx.beginPath();
+        ctx.moveTo(0, sy);
+        ctx.lineTo(width, sy);
+        ctx.stroke();
+      }
+
+      // Axis Lines (X and Y)
+      const originX = toScreenX(0);
+      const originY = toScreenY(0);
+
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = '#475569';
+      
+      // X-Axis
+      ctx.beginPath();
+      ctx.moveTo(0, originY);
+      ctx.lineTo(width, originY);
+      ctx.stroke();
+
+      // Y-Axis
+      ctx.beginPath();
+      ctx.moveTo(originX, 0);
+      ctx.lineTo(originX, height);
+      ctx.stroke();
+
+      // Helper function to draw continuous curve
+      function plotCurve(evalFunc, color, widthLine = 2) {
+        ctx.beginPath();
+        ctx.lineWidth = widthLine;
+        ctx.strokeStyle = color;
+
+        let started = false;
+        const pxStep = 2;
+
+        for (let px = 0; px <= width; px += pxStep) {
+          const mathX = graphState.xMin + (px / width) * (graphState.xMax - graphState.xMin);
+          const mathY = evalFunc(mathX);
+
+          if (!isNaN(mathY) && isFinite(mathY)) {
+            const py = toScreenY(mathY);
+            if (!started) {
+              ctx.moveTo(px, py);
+              started = true;
+            } else {
+              ctx.lineTo(px, py);
+            }
+          } else {
+            started = false;
+          }
+        }
+        ctx.stroke();
+      }
+
+      // Plot Curves based on Toggles
+      if (document.getElementById('chkShowFx').checked) {
+        plotCurve(evalFx, '#6366f1', 2.5); // f(x) Indigo
+      }
+      if (document.getElementById('chkShowF1').checked) {
+        plotCurve(evalF1, '#22d3ee', 1.5); // f'(x) Cyan
+      }
+      if (document.getElementById('chkShowF2').checked) {
+        plotCurve(evalF2, '#f472b6', 1.5); // f''(x) Pink
+      }
+
+      // Plot Live Tangent Line at x = a
+      const a = graphState.evalA;
+      const fa = evalFx(a);
+      const f1a = evalF1(a);
+
+      if (document.getElementById('chkShowTangent').checked && !isNaN(fa) && !isNaN(f1a)) {
+        const tangentFunc = (x) => f1a * (x - a) + fa;
+        plotCurve(tangentFunc, '#10b981', 1.5); // Tangent Emerald
+
+        // Draw Point of Tangency
+        const paX = toScreenX(a);
+        const paY = toScreenY(fa);
+
+        ctx.fillStyle = '#10b981';
+        ctx.beginPath();
+        ctx.arc(paX, paY, 5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Slider Updates
+    function updateSliderA(val) {
+      graphState.evalA = parseFloat(val);
+      document.getElementById('sliderAVal').innerText = parseFloat(val).toFixed(2);
+      document.getElementById('derivEvalA').value = val;
+      calculateDerivatives();
+      drawGraph();
+    }
+
+    // Interactive Hover Coordinates on Canvas
+    function initCanvasEvents() {
+      const canvas = document.getElementById('mathCanvas');
+      const hoverCoords = document.getElementById('canvasHoverCoords');
+
+      canvas.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        const mathX = graphState.xMin + (mouseX / rect.width) * (graphState.xMax - graphState.xMin);
+        const mathY = graphState.yMax - (mouseY / rect.height) * (graphState.yMax - graphState.yMin);
+
+        hoverCoords.innerText = `x: ${mathX.toFixed(2)}, y: ${mathY.toFixed(2)}`;
+      });
+    }
+
+    function resetCanvasView() {
+      graphState.xMin = -5;
+      graphState.xMax = 5;
+      graphState.yMin = -5;
+      graphState.yMax = 5;
+      drawGraph();
+    }
+
+    // -------------------------------------------------------------
+    // SOCRATIC AI TUTOR DATA & LOGIC
+    // -------------------------------------------------------------
+    const socraticProblems = {
+      1: {
+        title: "Find Critical Points of f(x) = x³ - 3x",
+        steps: [
+          { q: "Step 1: Compute the first derivative f'(x).", hint: "Use the Power Rule: d/dx(xⁿ) = n·xⁿ⁻¹.", answer: "f'(x) = 3x² - 3" },
+          { q: "Step 2: Set f'(x) = 0 to solve for critical values.", hint: "3x² - 3 = 0  =>  3(x² - 1) = 0.", answer: "x = 1 and x = -1" },
+          { q: "Step 3: Apply Second Derivative Test f''(x) = 6x.", hint: "f''(1) = 6 > 0 (Local Min); f''(-1) = -6 < 0 (Local Max).", answer: "Local Min at x=1, Local Max at x=-1." }
+        ]
+      },
+      2: {
+        title: "Evaluate Limit: lim_{x → 1} (x² - 1) / (x - 1)",
+        steps: [
+          { q: "Step 1: Direct substitution gives 0/0 (Indeterminate Form). What algebra technique simplifies this?", hint: "Factor the difference of squares in the numerator.", answer: "Factor (x² - 1) into (x - 1)(x + 1)." },
+          { q: "Step 2: Cancel common factor (x - 1).", hint: "The function simplifies to g(x) = x + 1 for x ≠ 1.", answer: "f(x) simplifies to x + 1." },
+          { q: "Step 3: Evaluate lim_{x → 1} (x + 1).", hint: "Substitute x = 1 into simplified expression.", answer: "Limit = 2." }
+        ]
+      }
+    };
+
+    let socraticState = { problemId: 1, stepIdx: 0 };
+
+    function loadSocraticProblem() {
+      const select = document.getElementById('socraticProblemSelect');
+      socraticState.problemId = select.value;
+      socraticState.stepIdx = 0;
+      renderSocraticStep();
+    }
+
+    function renderSocraticStep() {
+      const prob = socraticProblems[socraticState.problemId] || socraticProblems[1];
+      const currentStep = prob.steps[socraticState.stepIdx];
+
+      document.getElementById('socraticStepBadge').innerText = `Step ${socraticState.stepIdx + 1} of ${prob.steps.length}`;
+      document.getElementById('socraticQuestionArea').innerHTML = `
+        <p class="font-bold text-indigo-300 mb-1">${prob.title}</p>
+        <p class="text-slate-200">${currentStep.q}</p>
+      `;
+
+      document.getElementById('socraticHintBox').classList.add('hidden');
+    }
+
+    function revealSocraticHint() {
+      const prob = socraticProblems[socraticState.problemId] || socraticProblems[1];
+      const currentStep = prob.steps[socraticState.stepIdx];
+
+      const hintBox = document.getElementById('socraticHintBox');
+      hintBox.innerHTML = `<strong>Hint:</strong> ${currentStep.hint}`;
+      hintBox.classList.remove('hidden');
+    }
+
+    function nextSocraticStep() {
+      const prob = socraticProblems[socraticState.problemId] || socraticProblems[1];
+      if (socraticState.stepIdx < prob.steps.length - 1) {
+        socraticState.stepIdx++;
+        renderSocraticStep();
+      } else {
+        document.getElementById('socraticQuestionArea').innerHTML = `
+          <p class="text-emerald-400 font-bold">🎉 Challenge Completed! Excellent calculus reasoning.</p>
+        `;
+      }
+    }
+ // Helper: Render LaTeX safely using KaTeX
+    function renderKaTeX(latexStr, containerId) {
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      try {
+        katex.render(latexStr, el, { throwOnError: false });
+      } catch (e) {
+        el.innerText = latexStr;
+      }
+    }
+
+    // Theme Toggle Functionality
+    function toggleTheme() {
+      document.documentElement.classList.toggle('dark');
+    }
+  </script>
+</body>
+</html>
